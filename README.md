@@ -3,8 +3,11 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Machine Learning](https://img.shields.io/badge/scikit--learn-v1.5.2-orange.svg)](https://scikit-learn.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-v1.39.1-red.svg)](https://streamlit.io/)
+[![Vercel](https://img.shields.io/badge/Vercel-Serverless%20Deployed-black.svg?logo=vercel)](https://vercel.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-sushmitanandani127686-purple.svg)](https://github.com/sushmitanandani127686)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsushmitanandani127686%2FAgriSmart-AI)
 
 > **IBM SkillsBuild Internship Submission**  
 > **Domain:** Applied Machine Learning & Sustainable Agriculture  
