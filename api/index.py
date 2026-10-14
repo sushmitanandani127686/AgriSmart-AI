@@ -37,6 +37,7 @@ except Exception as e:
 
 
 @app.route("/api/health", methods=["GET"])
+@app.route("/health", methods=["GET"])
 def health_check():
     """Health check probe."""
     return jsonify({
@@ -47,6 +48,7 @@ def health_check():
 
 
 @app.route("/api/metrics", methods=["GET"])
+@app.route("/metrics", methods=["GET"])
 def get_metrics():
     """Return measured evaluation metrics and feature importances."""
     metrics_path = os.path.join(BASE_DIR, "models", "model_metrics.json")
@@ -58,6 +60,7 @@ def get_metrics():
 
 
 @app.route("/api/predict", methods=["POST"])
+@app.route("/predict", methods=["POST"])
 def predict_crop():
     """Crop recommendation endpoint."""
     global engine
@@ -96,6 +99,7 @@ def predict_crop():
 
 
 @app.route("/api/diagnose", methods=["POST"])
+@app.route("/diagnose", methods=["POST"])
 def diagnose_leaf():
     """Foliar disease diagnostic and lesion segmentation endpoint."""
     try:
