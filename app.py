@@ -11,6 +11,7 @@ Features:
 
 import os
 import json
+from PIL import Image
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -24,6 +25,7 @@ from src.predict import (
     CROP_PROFILES,
 )
 from src.data_loader import load_dataset, get_data_summary
+from src.disease_analyzer import segment_and_analyze_leaf
 
 # -----------------------------------------------------------------------------
 # Streamlit Page Configuration
@@ -273,9 +275,10 @@ with st.sidebar:
 # -----------------------------------------------------------------------------
 # Main Navigation Tabs
 # -----------------------------------------------------------------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
     [
         "🌾 Crop Recommendation",
+        "🔬 Leaf Disease Scanner (CV)",
         "📊 Model Evaluation & Metrics",
         "🌱 Dataset Exploration",
         "🕒 Prediction History",
@@ -533,9 +536,190 @@ with tab1:
 
 
 # =============================================================================
-# TAB 2: MODEL EVALUATION & METRICS
+# TAB 2: LEAF DISEASE SCANNER (COMPUTER VISION)
 # =============================================================================
 with tab2:
+    st.subheader("🔬 Plant Leaf Health & Disease Scanner")
+    st.markdown(
+        "Upload a clear close-up photograph of a plant leaf. Our computer vision engine performs "
+        "chromatic segmentation, calculates the **Excess Green Index (ExG)**, identifies necrotic "
+        "lesions and chlorotic yellowing, and diagnoses potential foliar diseases."
+    )
+
+    c_upload, c_preview = st.columns([1, 1], gap="large")
+
+    with c_upload:
+        st.markdown("#### 📸 Upload Leaf Photo or Select Test Sample")
+        uploaded_file = st.file_uploader(
+            "Choose a leaf image...",
+            type=["jpg", "jpeg", "png", "webp"],
+            help="Upload a clear image of a single leaf on a plain or field background",
+        )
+
+        sample_choice = st.selectbox(
+            "Or select a pre-loaded test sample image:",
+            [
+                "None (Use my uploaded photo)",
+                "Sample: Healthy Foliage",
+                "Sample: Early Blight / Fungal Leaf Spot",
+                "Sample: Chlorosis / Nutrient Deficiency",
+            ],
+            index=0,
+        )
+
+        img_to_process = None
+
+        if uploaded_file is not None:
+            try:
+                img_to_process = Image.open(uploaded_file)
+            except Exception as e:
+                st.error(f"Error loading image: {e}")
+        elif sample_choice != "None (Use my uploaded photo)":
+            sample_map = {
+                "Sample: Healthy Foliage": "data/sample_leaves/healthy_sample.png",
+                "Sample: Early Blight / Fungal Leaf Spot": "data/sample_leaves/blight_sample.png",
+                "Sample: Chlorosis / Nutrient Deficiency": "data/sample_leaves/chlorosis_sample.png",
+            }
+            sample_path = sample_map.get(sample_choice)
+            if sample_path and os.path.exists(sample_path):
+                img_to_process = Image.open(sample_path)
+
+        scan_btn = st.button("🔍 Scan & Diagnose Leaf", type="primary", use_container_width=True)
+
+    with c_preview:
+        if img_to_process is not None:
+            st.image(img_to_process, caption="Selected Leaf Image", use_column_width=True)
+        else:
+            st.info("👈 Upload an image or select a sample leaf on the left to start.")
+
+    if img_to_process is not None and (scan_btn or uploaded_file is not None or sample_choice != "None (Use my uploaded photo)"):
+        st.markdown("---")
+        st.markdown("### 📋 Diagnostic Analysis Results")
+
+        try:
+            with st.spinner("Analyzing foliar chromatic patterns and detecting lesions..."):
+                cv_result = segment_and_analyze_leaf(img_to_process)
+
+            res_col1, res_col2 = st.columns([1, 1], gap="large")
+
+            with res_col1:
+                st.markdown("#### 🎯 Lesion & Symptom Segmentation Heatmap")
+                st.image(
+                    cv_result["segmented_image"],
+                    caption="Computer Vision Segmented Lesion Map (300x300)",
+                    use_column_width=True,
+                )
+                st.markdown(
+                    """
+                    <div style="font-size:0.85rem; line-height:1.6; background:#f8f9fa; padding:0.6rem 0.9rem; border-radius:8px; border:1px solid #dee2e6;">
+                        <strong>Segmentation Legend:</strong><br/>
+                        🟢 <span style="color:#2d6a4f; font-weight:600;">Green:</span> Healthy Photosynthetic Tissue<br/>
+                        🟡 <span style="color:#b58300; font-weight:600;">Yellow:</span> Chlorosis / Loss of Chlorophyll<br/>
+                        🔴 <span style="color:#c9184a; font-weight:600;">Red:</span> Necrotic Lesions / Dead Blight Spots<br/>
+                        ⚪ <span style="color:#6c757d; font-weight:600;">Light Gray:</span> Powdery Mildew Surface Coating
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            with res_col2:
+                st.markdown(
+                    f"""
+                    <div class="result-container" style="border-color:{cv_result['badge_color']};">
+                        <span class="crop-badge" style="background-color:#f8f9fa; color:{cv_result['badge_color']}; border:1px solid {cv_result['badge_color']};">
+                            Severity: {cv_result['severity']}
+                        </span>
+                        <div class="crop-name-hero" style="font-size:1.65rem; color:{cv_result['badge_color']}; margin-top:0.4rem;">
+                            {cv_result['condition']}
+                        </div>
+                        <p style="color:#52796f; font-weight:600; margin-bottom:0.8rem;">
+                            Diagnostic Confidence: <strong style="color:#2d6a4f;">{cv_result['confidence_pct']}%</strong>
+                        </p>
+                        <div style="font-size:0.9rem; color:#495057;">
+                            <strong>Etiology / Pathogen:</strong> {cv_result['pathogen']}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                st.markdown("##### 📊 Foliar Surface Area Composition")
+                metrics = cv_result["metrics"]
+                m_df = pd.DataFrame(
+                    [
+                        {"Tissue Type": "Healthy Green Tissue", "Percentage": metrics["healthy_tissue_pct"]},
+                        {"Tissue Type": "Necrotic Lesion Spots", "Percentage": metrics["necrotic_lesion_pct"]},
+                        {"Tissue Type": "Chlorotic Yellowing", "Percentage": metrics["chlorotic_yellowing_pct"]},
+                        {"Tissue Type": "Powdery Surface Mildew", "Percentage": metrics["powdery_mold_pct"]},
+                    ]
+                )
+                fig_m = px.bar(
+                    m_df,
+                    x="Percentage",
+                    y="Tissue Type",
+                    orientation="h",
+                    text="Percentage",
+                    color="Tissue Type",
+                    color_discrete_map={
+                        "Healthy Green Tissue": "#40916c",
+                        "Necrotic Lesion Spots": "#d90429",
+                        "Chlorotic Yellowing": "#ffb703",
+                        "Powdery Surface Mildew": "#adb5bd",
+                    },
+                )
+                fig_m.update_layout(
+                    height=200,
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    showlegend=False,
+                    yaxis=dict(autorange="reversed"),
+                )
+                fig_m.update_traces(texttemplate="%{text:.1f}%", textposition="inside")
+                st.plotly_chart(fig_m, use_container_width=True)
+
+            st.markdown("---")
+            st.markdown("#### 🌿 Recommended Integrated Pest & Disease Management")
+
+            c_symp, c_mgmt = st.columns([1, 1.4], gap="large")
+            with c_symp:
+                st.markdown(
+                    f"""
+                    <div class="profile-item" style="border-left-color:#d90429;">
+                        <div class="profile-item-title">🔍 Identified Foliar Symptoms</div>
+                        <div class="profile-item-content">{cv_result['symptoms']}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            with c_mgmt:
+                st.markdown(
+                    f"""
+                    <div class="profile-item" style="border-left-color:#2d6a4f;">
+                        <div class="profile-item-title">📋 Recommended Cultural & Organic Actions</div>
+                        <div class="profile-item-content" style="white-space:pre-line;">{cv_result['management']}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            st.markdown(
+                f"""
+                <div class="disclaimer-box">
+                    <strong>Phytopathological Disclaimer:</strong> {cv_result['disclaimer']}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        except ValueError as ve:
+            st.warning(f"⚠️ {ve}")
+        except Exception as ex:
+            st.error(f"❌ Diagnostic Error: {ex}")
+
+
+# =============================================================================
+# TAB 3: MODEL EVALUATION & METRICS
+# =============================================================================
+with tab3:
     st.subheader("Measured Model Performance (Zero Data Leakage)")
     st.markdown(
         "These results reflect actual evaluations performed strictly on an unseen 20% held-out "
@@ -686,9 +870,9 @@ with tab2:
 
 
 # =============================================================================
-# TAB 3: DATASET EXPLORATION
+# TAB 4: DATASET EXPLORATION
 # =============================================================================
-with tab3:
+with tab4:
     st.subheader("Crop Recommendation Dataset Architecture")
 
     if df_dataset is None:
@@ -769,9 +953,9 @@ with tab3:
 
 
 # =============================================================================
-# TAB 4: PREDICTION HISTORY
+# TAB 5: PREDICTION HISTORY
 # =============================================================================
-with tab4:
+with tab5:
     st.subheader("Active Session Prediction History")
     st.markdown(
         "Tracks all recommendations generated during your current browser session. "
@@ -801,9 +985,9 @@ with tab4:
 
 
 # =============================================================================
-# TAB 5: ABOUT & METHODOLOGY
+# TAB 6: ABOUT & METHODOLOGY
 # =============================================================================
-with tab5:
+with tab6:
     st.subheader("About AgriSmart AI")
 
     st.markdown(

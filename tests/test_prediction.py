@@ -183,3 +183,65 @@ def test_all_22_crop_profiles_exist():
         assert "category" in profile
         assert "soil_type" in profile
         assert "water_requirement" in profile
+
+
+def test_disease_analyzer_healthy_leaf():
+    """Verify that a healthy green leaf image is diagnosed as Healthy Foliage."""
+    from PIL import Image
+    import numpy as np
+    from src.disease_analyzer import segment_and_analyze_leaf
+
+    arr = np.full((300, 300, 3), [40, 150, 45], dtype=np.uint8)
+    img = Image.fromarray(arr)
+    result = segment_and_analyze_leaf(img)
+
+    assert result["diagnosis_key"] == "healthy"
+    assert result["metrics"]["healthy_tissue_pct"] >= 95.0
+    assert result["confidence_pct"] >= 80.0
+    assert "segmented_image" in result
+
+
+def test_disease_analyzer_leaf_spot_necrotic():
+    """Verify that necrotic lesion spots trigger Leaf Spot / Blight diagnosis."""
+    from PIL import Image
+    import numpy as np
+    from src.disease_analyzer import segment_and_analyze_leaf
+
+    arr = np.full((300, 300, 3), [40, 140, 45], dtype=np.uint8)
+    # Add dark brown necrotic lesions
+    arr[60:130, 60:130] = [75, 35, 15]
+    img = Image.fromarray(arr)
+    result = segment_and_analyze_leaf(img)
+
+    assert result["diagnosis_key"] in ["leaf_spot_blight", "severe_necrosis_late_blight"]
+    assert result["metrics"]["necrotic_lesion_pct"] > 0.0
+    assert result["confidence_pct"] >= 70.0
+
+
+def test_disease_analyzer_chlorosis_yellowing():
+    """Verify that pale yellow foliage triggers Chlorosis diagnosis."""
+    from PIL import Image
+    import numpy as np
+    from src.disease_analyzer import segment_and_analyze_leaf
+
+    arr = np.full((300, 300, 3), [215, 200, 40], dtype=np.uint8)
+    img = Image.fromarray(arr)
+    result = segment_and_analyze_leaf(img)
+
+    assert result["diagnosis_key"] == "chlorosis_deficiency"
+    assert result["metrics"]["chlorotic_yellowing_pct"] >= 50.0
+
+
+def test_disease_analyzer_blank_image_fails():
+    """Verify that an image without foliage raises ValueError."""
+    from PIL import Image
+    import numpy as np
+    from src.disease_analyzer import segment_and_analyze_leaf
+
+    # Blank white image (e.g. wall/paper with no leaf)
+    arr = np.full((300, 300, 3), 255, dtype=np.uint8)
+    img = Image.fromarray(arr)
+    with pytest.raises(ValueError) as exc:
+        segment_and_analyze_leaf(img)
+    assert "Could not detect clear agricultural leaf foliage" in str(exc.value)
+

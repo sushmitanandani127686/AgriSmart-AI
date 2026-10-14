@@ -17,27 +17,26 @@
 
 Agriculture is the backbone of food security and rural livelihoods, yet smallholder farmers frequently suffer significant yield losses and soil degradation due to mismatched crop selection. Traditional farming decisions often rely on trial-and-error, generational habit, or static seasonal calendars that fail to account for specific soil chemical compositions and changing regional rainfall patterns.
 
-**AgriSmart AI** addresses this challenge by providing an intelligent, empirical decision-support system. Using a supervised ensemble machine learning model trained on historical agro-climatic trial data, the system evaluates seven critical soil macronutrient and climatic variables:
-- **Soil Chemistry:** Nitrogen ($N$), Phosphorus ($P$), Potassium ($K$), and Soil Acidity/Alkalinity ($\text{pH}$).
-- **Environmental Factors:** Ambient Temperature ($^\circ\text{C}$), Relative Atmospheric Humidity ($\%$), and Annual/Seasonal Rainfall ($\text{mm}$).
-
-The application recommends the most suitable crop out of **22 agricultural commodities** and pairs each recommendation with practical agronomic profiles (soil guidelines, irrigation advice, growth duration, and management tips) curated from the Food and Agriculture Organization (FAO) and the Indian Council of Agricultural Research (ICAR).
+**AgriSmart AI** addresses this challenge by providing an intelligent, empirical decision-support system featuring:
+1. **Intelligent Crop Recommendation Engine:** Evaluates seven critical soil macronutrient and climatic variables ($N, P, K, \text{pH}$, temperature, humidity, rainfall) against historical ICAR/FAO agro-climatic trial data to recommend the optimal crop across **22 agricultural commodities**.
+2. **Computer Vision Leaf Disease Scanner:** An image-processing module that uses chromatic segmentation and the **Excess Green Index (ExG)** to detect necrotic lesions, chlorotic yellowing, and powdery mildew from uploaded foliage photographs, delivering diagnostic severity ratings and actionable cultural management practices.
 
 ---
 
 ## 2. Intended Users & Objectives
 
 ### Target Audience
-- **Smallholder Farmers & Landholders:** Looking to diversify crop portfolios and maximize harvest success based on soil health test cards.
-- **Agricultural Extension Officers & Field Agents:** Providing scientific recommendations to village farming clusters.
-- **Agronomy Students & Researchers:** Studying multiclass classification applied to precision agriculture.
+- **Smallholder Farmers & Landholders:** Looking to diversify crop portfolios and detect early foliar disease outbreaks.
+- **Agricultural Extension Officers & Field Agents:** Providing scientific recommendations and visual symptom verification to village farming clusters.
+- **Agronomy Students & Researchers:** Studying multiclass classification and agricultural computer vision applied to precision farming.
 
 ### Key Objectives
 1. **Precision Matching:** Achieve $>98\%$ classification accuracy across 22 distinct crop classes using genuine supervised learning.
-2. **Zero Data Leakage:** Ensure training and preprocessing pipelines are strictly isolated from held-out test evaluation.
-3. **Decoupled Architecture:** Maintain clean separation between the data validation layer, training pipeline, prediction engine, and Streamlit user interface.
-4. **Actionable Insights:** Deliver transparent confidence percentages, top alternative candidates, and curated crop profiles.
-5. **Responsible AI:** Provide clear bounding limits, transparent evaluation metrics, and an agronomic scope disclaimer.
+2. **Early Foliar Diagnosis:** Isolate leaf lesions, chlorotic chlorosis, and necrotic blight from uploaded photos with pixel-level segmentation heatmaps.
+3. **Zero Data Leakage:** Ensure training and preprocessing pipelines are strictly isolated from held-out test evaluation.
+4. **Decoupled Architecture:** Maintain clean separation between the data validation layer, training pipeline, prediction engine, computer vision analyzer, and Streamlit user interface.
+5. **Actionable Insights:** Deliver transparent confidence percentages, top alternative candidates, and curated crop profiles.
+6. **Responsible AI:** Provide clear bounding limits, transparent evaluation metrics, and an agronomic scope disclaimer.
 
 ---
 
