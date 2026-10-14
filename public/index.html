@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriSmart AI — Intelligent Crop Recommendation & Leaf Health System</title>
+  <meta name="description" content="AI-driven decision support system recommending optimal crops and diagnosing foliar plant diseases using machine learning and computer vision.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js CDN for interactive charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="header-badge">IBM SkillsBuild Internship • Applied AI</div>
+      <h1 class="header-title">🌱 AgriSmart AI</h1>
+      <p class="header-subtitle">
+        Intelligent decision-support system recommending optimal agricultural crops from soil macronutrients (N, P, K) and agro-climatic conditions, with real-time foliar disease computer vision diagnostics.
+      </p>
+      <div class="header-meta">
+        <span><strong>Author:</strong> Sushmita Nandani</span>
+        <span>•</span>
+        <a href="https://github.com/sushmitanandani127686/AgriSmart-AI" target="_blank" rel="noopener" class="header-link">GitHub Repository</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs" role="tablist">
+    <div class="nav-container">
+      <button class="tab-btn active" id="tab-btn-crop" data-target="section-crop" role="tab" aria-selected="true">
+        🌾 Crop Recommendation
+      </button>
+      <button class="tab-btn" id="tab-btn-disease" data-target="section-disease" role="tab" aria-selected="false">
+        🔬 Leaf Disease Scanner (CV)
+      </button>
+      <button class="tab-btn" id="tab-btn-metrics" data-target="section-metrics" role="tab" aria-selected="false">
+        📊 Model Metrics
+      </button>
+      <button class="tab-btn" id="tab-btn-history" data-target="section-history" role="tab" aria-selected="false">
+        🕒 History
+      </button>
+      <button class="tab-btn" id="tab-btn-about" data-target="section-about" role="tab" aria-selected="false">
+        ℹ️ About Project
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+
+    <!-- ==================== TAB 1: CROP RECOMMENDATION ==================== -->
+    <section id="section-crop" class="tab-pane active" role="tabpanel">
+      <div class="split-layout">
+        
+        <!-- Left: Input Form -->
+        <div class="card form-card">
+          <div class="card-header">
+            <h2 class="card-title">Soil Macronutrients & Climate Inputs</h2>
+            <p class="card-desc">Enter measured soil chemical values and local weather parameters.</p>
+          </div>
+
+          <!-- Presets Dropdown -->
+          <div class="form-group preset-group">
+            <label for="preset-select" class="field-label">⚡ Quick Presets</label>
+            <select id="preset-select" class="form-select">
+              <option value="custom">Custom Farm Input</option>
+              <option value="paddy">Monsoon Paddy Field (High Rain, High N)</option>
+              <option value="pulse">Semi-Arid Pulses (Low Rain, Mod P)</option>
+              <option value="orchard">Fruit Orchard (High Potassium K)</option>
+              <option value="coffee">Hill Plantation / Coffee (High Rain, Mild Temp)</option>
+            </select>
+          </div>
+
+          <form id="crop-form">
+            <div class="section-divider"><span>🧪 Soil Chemistry (NPK)</span></div>
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label for="input-n" class="field-label">Nitrogen (N) <span class="unit">kg/ha</span></label>
+                <input type="number" id="input-n" class="form-input" min="0" max="300" step="1" value="90" required>
+                <span class="field-hint">Range: 0 – 300</span>
+              </div>
+              <div class="form-group">
+                <label for="input-p" class="field-label">Phosphorus (P) <span class="unit">kg/ha</span></label>
+                <input type="number" id="input-p" class="form-input" min="0" max="300" step="1" value="42" required>
+                <span class="field-hint">Range: 0 – 300</span>
+              </div>
+              <div class="form-group">
+                <label for="input-k" class="field-label">Potassium (K) <span class="unit">kg/ha</span></label>
+                <input type="number" id="input-k" class="form-input" min="0" max="300" step="1" value="43" required>
+                <span class="field-hint">Range: 0 – 300</span>
+              </div>
+            </div>
+
+            <div class="section-divider"><span>🌦️ Agro-Climatic Conditions</span></div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="input-temp" class="field-label">Temperature <span class="unit">°C</span></label>
+                <input type="number" id="input-temp" class="form-input" min="-10" max="60" step="0.1" value="20.8" required>
+                <span class="field-hint">Range: -10 – 60</span>
+              </div>
+              <div class="form-group">
+                <label for="input-humidity" class="field-label">Humidity <span class="unit">%</span></label>
+                <input type="number" id="input-humidity" class="form-input" min="0" max="100" step="0.5" value="82.0" required>
+                <span class="field-hint">Range: 0 – 100</span>
+              </div>
+              <div class="form-group">
+                <label for="input-ph" class="field-label">Soil pH <span class="unit">Scale</span></label>
+                <input type="number" id="input-ph" class="form-input" min="0" max="14" step="0.1" value="6.5" required>
+                <span class="field-hint">Range: 0 – 14</span>
+              </div>
+              <div class="form-group">
+                <label for="input-rainfall" class="field-label">Rainfall <span class="unit">mm</span></label>
+                <input type="number" id="input-rainfall" class="form-input" min="0" max="4000" step="5" value="202.9" required>
+                <span class="field-hint">Range: 0 – 4000</span>
+              </div>
+            </div>
+
+            <button type="submit" id="btn-predict-crop" class="btn btn-primary">
+              <span class="btn-text">🌿 Recommend Optimal Crop</span>
+              <span class="btn-spinner hidden"></span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Results Panel -->
+        <div class="card result-card" id="crop-result-container">
+          <div class="empty-state" id="crop-empty-state">
+            <div class="empty-icon">🌾</div>
+            <h3>Ready to Analyze Farmland</h3>
+            <p>Adjust the soil nutrients and weather inputs on the left, then click <strong>"Recommend Optimal Crop"</strong>.</p>
+          </div>
+
+          <div id="crop-results-active" class="hidden">
+            <div class="hero-crop-banner">
+              <div class="category-tag" id="res-category">Cereal / Grain</div>
+              <h2 class="hero-crop-name" id="res-crop-name">Rice (Oryza sativa)</h2>
+              <div class="confidence-bar-wrapper">
+                <div class="confidence-header">
+                  <span>Model Classification Confidence:</span>
+                  <strong id="res-confidence-text">90.0%</strong>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="res-confidence-bar" style="width: 90%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Candidates -->
+            <div class="candidates-block" id="candidates-container">
+              <h4 class="subheading">📈 Top Match Probabilities</h4>
+              <div id="candidates-list" class="candidates-list"></div>
+            </div>
+
+            <!-- Agronomic Profile -->
+            <div class="profile-block">
+              <h4 class="subheading">📋 FAO & ICAR Cultivation Guidelines</h4>
+              <div class="profile-grid">
+                <div class="profile-card">
+                  <div class="profile-title">🪴 Optimal Soil Type</div>
+                  <div class="profile-content" id="prof-soil">Clayey loam, alluvial</div>
+                </div>
+                <div class="profile-card">
+                  <div class="profile-title">💧 Irrigation & Water Needs</div>
+                  <div class="profile-content" id="prof-water">1000 - 2500 mm</div>
+                </div>
+                <div class="profile-card">
+                  <div class="profile-title">☀️ Season & Duration</div>
+                  <div class="profile-content" id="prof-season">Kharif (100 - 150 days)</div>
+                </div>
+                <div class="profile-card">
+                  <div class="profile-title">🧪 Key Fertilizer Advice</div>
+                  <div class="profile-content" id="prof-nutrients">High Nitrogen requirement</div>
+                </div>
+              </div>
+              <div class="profile-management">
+                <div class="profile-title">💡 Management Practice</div>
+                <div class="profile-content" id="prof-tip">Maintain puddling in fields to conserve moisture and suppress weeds.</div>
+              </div>
+            </div>
+
+            <div class="disclaimer-alert">
+              <strong>Notice:</strong> AgriSmart AI recommendations are based on multivariate pattern analysis of empirical agro-climatic boundaries. It does not establish guaranteed crop yields or replace local agricultural extension tests.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: LEAF DISEASE SCANNER ==================== -->
+    <section id="section-disease" class="tab-pane" role="tabpanel">
+      <div class="split-layout">
+
+        <!-- Left: Upload Card -->
+        <div class="card upload-card">
+          <div class="card-header">
+            <h2 class="card-title">Foliar Computer Vision Scanner</h2>
+            <p class="card-desc">Upload a close-up photo of a plant leaf or select a pre-loaded test specimen.</p>
+          </div>
+
+          <div class="drop-zone" id="leaf-drop-zone">
+            <input type="file" id="leaf-file-input" accept="image/*" class="file-input-hidden">
+            <div class="drop-zone-content">
+              <div class="drop-icon">📸</div>
+              <p><strong>Click to upload</strong> or drag and drop leaf photo</p>
+              <span class="file-types">Supports JPG, PNG, WEBP</span>
+            </div>
+          </div>
+
+          <div class="form-group sample-select-group">
+            <label for="leaf-sample-select" class="field-label">Or test with pre-loaded samples:</label>
+            <select id="leaf-sample-select" class="form-select">
+              <option value="none">Choose sample image...</option>
+              <option value="healthy">Sample 1: Healthy Foliage</option>
+              <option value="blight">Sample 2: Early Blight / Leaf Spot</option>
+              <option value="chlorosis">Sample 3: Chlorosis / Nutrient Deficiency</option>
+            </select>
+          </div>
+
+          <button type="button" id="btn-scan-leaf" class="btn btn-primary" disabled>
+            <span class="btn-text">🔍 Scan & Diagnose Leaf</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+        </div>
+
+        <!-- Right: Diagnostic Output -->
+        <div class="card disease-result-card" id="disease-result-container">
+          <div class="empty-state" id="disease-empty-state">
+            <div class="empty-icon">🔬</div>
+            <h3>No Leaf Image Selected</h3>
+            <p>Upload a clear photo or select a test sample to analyze foliar lesions and symptoms.</p>
+          </div>
+
+          <div id="disease-results-active" class="hidden">
+            <div class="cv-images-row">
+              <div class="cv-image-box">
+                <span class="cv-box-label">Original Photo</span>
+                <img id="cv-original-img" src="" alt="Original leaf image">
+              </div>
+              <div class="cv-image-box">
+                <span class="cv-box-label">Lesion Segmentation Heatmap</span>
+                <img id="cv-segmented-img" src="" alt="Segmented lesion heatmap">
+              </div>
+            </div>
+
+            <div class="cv-legend">
+              <span class="legend-item"><span class="dot dot-green"></span> Healthy</span>
+              <span class="legend-item"><span class="dot dot-yellow"></span> Chlorosis</span>
+              <span class="legend-item"><span class="dot dot-red"></span> Necrotic Lesions</span>
+              <span class="legend-item"><span class="dot dot-gray"></span> Powdery Mildew</span>
+            </div>
+
+            <!-- Diagnosis Hero Banner -->
+            <div class="hero-disease-banner" id="disease-banner">
+              <span class="severity-tag" id="res-disease-severity">Severity: Moderate</span>
+              <h3 class="hero-disease-name" id="res-disease-name">Early Blight / Leaf Spot</h3>
+              <p class="disease-pathogen"><strong>Pathogen:</strong> <span id="res-disease-pathogen">Alternaria spp.</span></p>
+            </div>
+
+            <!-- Foliar Surface Breakdown -->
+            <div class="cv-metrics-block">
+              <h4 class="subheading">📊 Foliar Surface Area Composition</h4>
+              <div class="metric-progress-list">
+                <div class="metric-progress-item">
+                  <div class="metric-label"><span>Healthy Green Tissue:</span> <strong id="val-healthy-pct">0%</strong></div>
+                  <div class="progress-track"><div class="progress-fill fill-green" id="bar-healthy-pct"></div></div>
+                </div>
+                <div class="metric-progress-item">
+                  <div class="metric-label"><span>Necrotic Lesions:</span> <strong id="val-necrotic-pct">0%</strong></div>
+                  <div class="progress-track"><div class="progress-fill fill-red" id="bar-necrotic-pct"></div></div>
+                </div>
+                <div class="metric-progress-item">
+                  <div class="metric-label"><span>Chlorotic Yellowing:</span> <strong id="val-chlorotic-pct">0%</strong></div>
+                  <div class="progress-track"><div class="progress-fill fill-yellow" id="bar-chlorotic-pct"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Treatment Guidance -->
+            <div class="management-block">
+              <h4 class="subheading">🌿 Actionable Cultural Practices (ICAR/FAO)</h4>
+              <div class="mgmt-content" id="res-disease-mgmt"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: MODEL METRICS ==================== -->
+    <section id="section-metrics" class="tab-pane" role="tabpanel">
+      <div class="metrics-grid">
+        <div class="metric-stat-card">
+          <div class="stat-title">Random Forest Accuracy</div>
+          <div class="stat-value">99.55%</div>
+          <div class="stat-caption">Held-Out Test Set (440 samples)</div>
+        </div>
+        <div class="metric-stat-card">
+          <div class="stat-title">Macro F1-Score</div>
+          <div class="stat-value">99.55%</div>
+          <div class="stat-caption">Balanced across 22 classes</div>
+        </div>
+        <div class="metric-stat-card">
+          <div class="stat-title">Macro Precision</div>
+          <div class="stat-value">99.57%</div>
+          <div class="stat-caption">Extremely low false positives</div>
+        </div>
+        <div class="metric-stat-card">
+          <div class="stat-title">Macro Recall</div>
+          <div class="stat-value">99.55%</div>
+          <div class="stat-caption">Sensitivity across all crops</div>
+        </div>
+      </div>
+
+      <div class="charts-layout">
+        <!-- Comparison Table -->
+        <div class="card">
+          <h3 class="card-title">⚖️ Model Comparison Benchmark</h3>
+          <p class="card-desc">Held-out test split evaluation (80% train / 20% test, seed=42):</p>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Evaluation Metric</th>
+                <th>Decision Tree (Baseline)</th>
+                <th>Random Forest (Primary)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Accuracy</td><td>97.95%</td><td><strong>99.55%</strong></td></tr>
+              <tr><td>Macro Precision</td><td>98.06%</td><td><strong>99.57%</strong></td></tr>
+              <tr><td>Macro Recall</td><td>97.95%</td><td><strong>99.55%</strong></td></tr>
+              <tr><td>Macro F1-Score</td><td>97.94%</td><td><strong>99.55%</strong></td></tr>
+            </tbody>
+          </table>
+          <p class="note-text">
+            <strong>Why Random Forest is superior:</strong> Bagging (Bootstrap Aggregation) averages 100 decorrelated decision trees, reducing variance and avoiding individual tree leaf over-fitting.
+          </p>
+        </div>
+
+        <!-- Feature Importance Chart -->
+        <div class="card">
+          <h3 class="card-title">🌲 Gini Feature Importance</h3>
+          <p class="card-desc">Relative influence of each factor on crop suitability:</p>
+          <div class="chart-container">
+            <canvas id="featureImportanceChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: PREDICTION HISTORY ==================== -->
+    <section id="section-history" class="tab-pane" role="tabpanel">
+      <div class="card">
+        <div class="card-header-row">
+          <div>
+            <h2 class="card-title">Active Session Recommendations</h2>
+            <p class="card-desc">Tracks all crop predictions generated in your browser session.</p>
+          </div>
+          <div class="history-actions">
+            <button id="btn-export-history" class="btn btn-secondary">📥 Export CSV</button>
+            <button id="btn-clear-history" class="btn btn-outline">🗑️ Clear</button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" id="history-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Recommended Crop</th>
+                <th>Confidence</th>
+                <th>N</th>
+                <th>P</th>
+                <th>K</th>
+                <th>Temp</th>
+                <th>Humidity</th>
+                <th>pH</th>
+                <th>Rainfall</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <tr class="empty-row"><td colspan="10">No recommendations generated yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: ABOUT ==================== -->
+    <section id="section-about" class="tab-pane" role="tabpanel">
+      <div class="card about-card">
+        <h2 class="card-title">About AgriSmart AI</h2>
+        <div class="about-content">
+          <h3>Project Summary</h3>
+          <p>
+            <strong>AgriSmart AI</strong> is an applied machine learning and precision agriculture project developed by <strong>Sushmita Nandani</strong> for the <strong>IBM SkillsBuild Internship</strong>.
+          </p>
+
+          <h3>Core System Architecture</h3>
+          <ul>
+            <li><strong>Supervised Learning Engine:</strong> Random Forest Classifier (100 estimators) trained on 2,200 empirical agro-climatic trial records across 22 crops.</li>
+            <li><strong>Computer Vision Module:</strong> Chromatic leaf surface analyzer using the Excess Green Index (ExG) to segment lesions and diagnose foliar fungal blights and chlorosis.</li>
+            <li><strong>Agronomic Reference:</strong> Guidelines, water management metrics, and soil parameters curated from Food and Agriculture Organization (FAO) and Indian Council of Agricultural Research (ICAR).</li>
+          </ul>
+
+          <h3>Responsible AI & Ethical Notice</h3>
+          <p>
+            AgriSmart AI is an educational decision-support aid. It does not provide chemical pesticide prescriptions or guarantee commercial crop yields. Agricultural decisions should always be cross-referenced with certified local laboratory soil tests.
+          </p>
+
+          <div class="author-box">
+            <h4>Developer Credentials</h4>
+            <p><strong>Student:</strong> Sushmita Nandani</p>
+            <p><strong>GitHub Profile:</strong> <a href="https://github.com/sushmitanandani127686" target="_blank" rel="noopener">github.com/sushmitanandani127686</a></p>
+            <p><strong>Repository:</strong> <a href="https://github.com/sushmitanandani127686/AgriSmart-AI" target="_blank" rel="noopener">AgriSmart-AI on GitHub</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>AgriSmart AI • IBM SkillsBuild Internship Project • Built with Python, scikit-learn, and Vanilla Web Technologies</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
